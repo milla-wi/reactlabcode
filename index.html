@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en-US">
+    <head>
+        <meta charset="UTF-8"/>
+        <title>XKCD Comic Lab</title>
+        <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+        <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <link rel="stylesheet" href="styles.css"/>
+    </head>
+    <body>
+        <div class="nav">
+            <ul>
+                <li><a class="nav-item" href="#">Home</a></li>
+                <li><a class="nav-item" href="about.html">About</a></li>
+                <li><a class="nav-item" href="/">CS 260 Home</a></li>
+            </ul>
+        </div>
+        <div class="centered" id="main-page"></div>
+        
+        <script type="text/babel">
+            class ComicPages extends React.Component{
+                constructor(props){
+                    super(props);
+                    
+                    this.state = {
+                        comicNumber:'latest',
+                        lastComic:0,
+                        current:{
+                            title:'',
+                            img:'',
+                            alt:'',
+                        },
+                    };
+                    
+                    this.getXKCD = this.getXKCD.bind(this);
+                    
+                    this.handleFirst = this.handleFirst.bind(this);
+                    this.handlePrevious = this.handlePrevious.bind(this);
+                    this.handleRandom = this.handleRandom.bind(this);
+                    this.handleNext = this.handleNext.bind(this);
+                    this.handleLast = this.handleLast.bind(this);
+                    
+                    this.getXKCD();
+                }
+                
+                getXKCD(){
+                    var url = "https://xkcd.vercel.app/?comic=" + this.state.comicNumber;
+                    axios.get(url)
+                    .then(response=> {
+                        let comicNum = response.data.num;
+                        this.state.comicNumber = comicNum;
+                        if(this.state.lastComic == 0) {
+                            this.state.lastComic = comicNum;
+                        }
+                        console.log(this.state);
+                        this.setState(prevState =>{
+                            let current = Object.assign({}, prevState.current);
+                            current = response.data;
+                            return {current};
+                        });
+                        return true;
+                    }).catch(error=> {
+                        console.log(error);
+                        });
+                    
+                }
+                
+                
+                handleFirst(){
+                    this.state.comicNumber = 1;
+                    this.getXKCD();
+                }
+                
+                handlePrevious(){
+                    if(this.state.comicNumber > 1){
+                        this.state.comicNumber = this.state.comicNumber - 1;
+                        this.getXKCD();
+                    }
+                    
+                }
+                
+                handleRandom(){
+                    var min = 1;
+                    var max = this.state.lastComic + 1;
+                    var newNumber = Math.floor((Math.random() * max) + 1);
+                    console.log(newNumber);
+                    this.state.comicNumber = newNumber;
+                    this.getXKCD();
+                }
+                
+                handleNext(){
+                    if(this.state.comicNumber < this.state.lastComic){
+                        this.state.comicNumber = this.state.comicNumber + 1;
+                        this.getXKCD();
+                    }
+                    
+                }
+                
+                handleLast(){
+                    this.state.comicNumber = this.state.lastComic;
+                    this.getXKCD();
+                }
+                
+                render(){
+                    return(
+                        <div className="centered">
+                            <h1>XKCD Comics</h1>
+                            <h2>{this.state.current.title}</h2>
+                            <img className="comic-img" src={this.state.current.img}/>
+                            <p id="small-quote">{this.state.current.alt}</p>
+                            <p>Issue No.{this.state.comicNumber}</p>
+                            <p>Date Published: {this.state.current.month}/{this.state.current.day}/{this.state.current.year}</p>
+                            <div className="comic-menu">
+                                <button className="comic-menu-item" onClick={this.handleFirst}>First</button>
+                                <button className="comic-menu-item" onClick={this.handlePrevious}>Previous</button>
+                                <button className="comic-menu-item" onClick={this.handleRandom}>Random</button>
+                                <button className="comic-menu-item" onClick={this.handleNext}>Next</button>
+                                <button className="comic-menu-item" onClick={this.handleLast}>Last</button>
+                            </div>
+                        </div>
+                    );
+                }
+            }
+            const rootPage = ReactDOM.createRoot(document.getElementById('main-page'));
+            rootPage.render(<ComicPages/>);
+        </script>
+    </body>
+    <footer>
+        <div class="centered">
+            <p>Milla Wilbert CS 260 Fall 2022</p>
+        </div>
+    </footer>
+</html>
